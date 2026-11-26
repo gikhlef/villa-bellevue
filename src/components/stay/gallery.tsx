@@ -1,0 +1,107 @@
+import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { PHOTO_SLOTS } from "@/data/property";
+
+export function Gallery({ photos }: { photos: Record<string, string> }) {
+  const slots = PHOTO_SLOTS.flatMap((slot) => {
+    const src = photos[slot.id] || slot.src;
+    return src ? [{ ...slot, src }] : [];
+  });
+  const [open, setOpen] = useState<number | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open === null) {
+      if (dialog.open) dialog.close();
+      return;
+    }
+    if (!dialog.open) dialog.showModal();
+  }, [open]);
+
+  useEffect(() => {
+    if (open === null) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "ArrowRight") {
+        setOpen((i) => (i === null ? i : (i + 1) % slots.length));
+      }
+      if (event.key === "ArrowLeft") {
+        setOpen((i) => (i === null ? i : (i - 1 + slots.length) % slots.length));
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, slots.length]);
+
+  const current = open === null ? null : slots[open];
+
+  if (slots.length === 0) return null;
+
+  return (
+    <section aria-label="Photos" className="mx-auto max-w-6xl px-5 pb-4">
+      <ul className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
+        {slots.map((slot, index) => (
+          <li key={slot.id} className={index === 0 ? "col-span-2" : ""}>
+            <button
+              type="button"
+              className="group relative block w-full overflow-hidden"
+              onClick={() => setOpen(index)}
+            >
+              <img
+                src={slot.src}
+                alt={slot.alt}
+                className={`photo-zoom w-full object-cover ${index === 0 ? "aspect-wide" : "aspect-photo"}`}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <dialog
+        ref={dialogRef}
+        className="lightbox"
+        onClose={() => setOpen(null)}
+        onClick={(event) => {
+          if (event.target === dialogRef.current) setOpen(null);
+        }}
+      >
+        {current ? (
+          <div className="flex h-full flex-col">
+            <div className="flex items-center justify-between px-4 py-3">
+              <p className="text-sm text-paper">
+                {current.caption}
+                <span className="ml-3 text-paper/70 tabular-nums">
+                  {(open ?? 0) + 1} / {slots.length}
+                </span>
+              </p>
+              <button type="button" className="btn-ghost border-paper/30 text-paper" onClick={() => setOpen(null)}>
+                <X className="size-4" />
+                Fermer
+              </button>
+            </div>
+            <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-6">
+              <button
+                type="button"
+                aria-label="Photo précédente"
+                className="btn-ghost absolute left-3 border-paper/30 text-paper md:left-6"
+                onClick={() => setOpen((i) => (i === null ? i : (i - 1 + slots.length) % slots.length))}
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <img src={current.src} alt={current.alt} className="max-h-full max-w-full object-contain" />
+              <button
+                type="button"
+                aria-label="Photo suivante"
+                className="btn-ghost absolute right-3 border-paper/30 text-paper md:right-6"
+                onClick={() => setOpen((i) => (i === null ? i : (i + 1) % slots.length))}
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </dialog>
+    </section>
+  );
+}

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://villabellevue.fr/sitemap.xml
