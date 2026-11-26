@@ -40,6 +40,8 @@ export type Property = {
   mapUrl: string;
   hostName: string;
   hostEmail: string;
+  hostBio: string;
+  hostPhoto: string;
   amenities: Amenity[];
   rules: string[];
   sleeps: Sleep[];
@@ -69,6 +71,7 @@ export type PhotoSlot = {
   src: string;
   alt: string;
   caption: string;
+  room: string;
 };
 
 export { PHOTO_SLOTS } from "./photos.ts";
@@ -97,6 +100,8 @@ export const defaultProperty: Property = {
     "https://www.openstreetmap.org/search?query=18%20chemin%20de%20Bel%20Air%2C%2089660%20Mailly-le-Ch%C3%A2teau",
   hostName: "Gwendoline",
   hostEmail: "villabellevue89@gmail.com",
+  hostBio: "Bonjour, je suis Gwendoline. J’habite près de la maison et je m’en occupe avec ma famille. N’hésitez pas à m’écrire avant de réserver, je réponds directement.",
+  hostPhoto: "",
   amenities: [
     { id: "piscine", icon: "waves", label: "Piscine privée, mai à septembre" },
     { id: "jacuzzi", icon: "bath", label: "Jacuzzi" },
