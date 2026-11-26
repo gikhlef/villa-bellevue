@@ -35,28 +35,33 @@ export function Gallery({ photos }: { photos: Record<string, string> }) {
   }, [open, slots.length]);
 
   const current = open === null ? null : slots[open];
+  const rooms = [...new Set(slots.map((s) => s.room || "Autres"))];
 
   if (slots.length === 0) return null;
 
   return (
     <section aria-label="Photos" className="mx-auto max-w-6xl px-5 pb-4">
-      <ul className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
-        {slots.map((slot, index) => (
-          <li key={slot.id} className={index === 0 ? "col-span-2" : ""}>
-            <button
-              type="button"
-              className="group relative block w-full overflow-hidden"
-              onClick={() => setOpen(index)}
-            >
-              <img
-                src={slot.src}
-                alt={slot.alt}
-                className={`photo-zoom w-full object-cover ${index === 0 ? "aspect-wide" : "aspect-photo"}`}
-              />
-            </button>
-          </li>
-        ))}
-      </ul>
+      {rooms.map((room) => {
+        const items = slots.filter((s) => s.room === room);
+        if (items.length === 0) return null;
+        return (
+          <div key={room} className="mt-10">
+            <h2 className="font-display text-2xl text-ink">{room}</h2>
+            <ul className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
+              {items.map((slot) => {
+                const index = slots.findIndex((s) => s.id === slot.id);
+                return (
+                  <li key={slot.id}>
+                    <button type="button" className="group relative block w-full overflow-hidden" onClick={() => setOpen(index)}>
+                      <img src={slot.src} alt={slot.alt} className="photo-zoom aspect-photo w-full object-cover" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
 
       <dialog
         ref={dialogRef}

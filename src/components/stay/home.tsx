@@ -178,6 +178,26 @@ export function HomePage() {
           </div>
         </section>
 
+        <ContactSection hostEmail={property.hostEmail} hostName={property.hostName} />
+
+        <section id="hote-presentation" className="scroll-mt-20 border-t border-line">
+          <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 py-16 md:grid-cols-[200px_1fr] md:py-24">
+            {property.hostPhoto ? (
+              <img src={property.hostPhoto} alt={property.hostName} className="aspect-square w-48 object-cover" />
+            ) : (
+              <div className="flex aspect-square w-48 items-center justify-center bg-surface text-sm text-muted">Photo</div>
+            )}
+            <div>
+              <p className="eyebrow">Votre hôte</p>
+              <h2 className="mt-3 font-display text-4xl leading-display text-ink">Faire connaissance avec {property.hostName}</h2>
+              <p className="mt-4 max-w-xl leading-relaxed text-muted">{property.hostBio}</p>
+              <button type="button" className="btn mt-6" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>
+                Contacter {property.hostName}
+              </button>
+            </div>
+          </div>
+        </section>
+
         <section id="infos" className="scroll-mt-20 border-t border-line">
           <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-3 md:py-24">
             <div>
@@ -245,6 +265,66 @@ function Fact({ k, v }: { k: string; v: string }) {
       <dt className="text-xs uppercase tracking-eyebrow text-muted">{k}</dt>
       <dd className="mt-1 font-display text-2xl tabular-nums text-ink">{v}</dd>
     </div>
+  );
+}
+
+function ContactSection({ hostEmail, hostName }: { hostEmail: string; hostName: string }) {
+  const { lang } = useLang();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [text, setText] = useState("");
+
+  const mailto =
+    hostEmail && name.trim() && email.trim() && text.trim()
+      ? `mailto:${hostEmail}?subject=${encodeURIComponent(`Message Villa Bellevue — ${name.trim()}`)}&body=${encodeURIComponent(
+          [`Nom : ${name.trim()}`, `E-mail : ${email.trim()}`, "", text.trim()].join("\n"),
+        )}`
+      : null;
+
+  return (
+    <section id="contact" className="scroll-mt-20 border-t border-line">
+      <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
+        <p className="eyebrow">{t(lang, "contact")}</p>
+        <h2 className="mt-3 max-w-2xl font-display text-4xl leading-display text-ink">
+          {lang === "fr" ? "Une question avant de réserver ?" : lang === "de" ? "Eine Frage vor der Buchung?" : lang === "nl" ? "Een vraag voor het boeken?" : "A question before booking?"}
+        </h2>
+        <p className="mt-4 max-w-xl text-muted">
+          {lang === "fr"
+            ? `${hostName} répond directement. Rien n’est réservé tant que vous n’envoyez pas de demande de dates.`
+            : lang === "de"
+              ? `${hostName} antwortet direkt.`
+              : lang === "nl"
+                ? `${hostName} antwoordt direct.`
+                : `${hostName} replies directly. Nothing is booked until you send a date request.`}
+        </p>
+        <form
+          className="mt-8 max-w-xl space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (mailto) window.location.href = mailto;
+          }}
+        >
+          <label className="block text-sm">
+            {t(lang, "name")}
+            <input className="field mt-1" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" />
+          </label>
+          <label className="block text-sm">
+            {t(lang, "email")}
+            <input className="field mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+          </label>
+          <label className="block text-sm">
+            {t(lang, "message")}
+            <textarea className="field mt-1 min-h-28" value={text} onChange={(e) => setText(e.target.value)} required />
+          </label>
+          <button type="submit" className="btn" disabled={!mailto}>
+            {lang === "fr" ? "Envoyer le message" : lang === "de" ? "Nachricht senden" : lang === "nl" ? "Bericht versturen" : "Send message"}
+          </button>
+          <p className="text-xs text-muted">
+            {hostEmail ? (lang === "fr" ? "Votre messagerie s’ouvre avec le message prêt à envoyer." : "Your email app opens with the message ready.") : `E-mail de ${hostName} à renseigner.`}
+          </p>
+        </form>
+      </div>
+    </section>
   );
 }
 
