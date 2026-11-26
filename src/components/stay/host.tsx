@@ -28,6 +28,60 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "photos", label: "Photos" },
 ];
 
+const HOST_PASSWORD = "Villabellevue89@";
+const SESSION_KEY = "bellevue-host-ok";
+
+function PasswordGate({ children }: { children: ReactNode }) {
+  const [ok, setOk] = useState(false);
+  const [value, setValue] = useState("");
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(SESSION_KEY) === "1") setOk(true);
+  }, []);
+
+  if (ok) return <>{children}</>;
+
+  return (
+    <div className="min-h-screen bg-bg text-ink">
+      <SiteHeader property={useStay.getState().property} solid />
+      <main className="mx-auto max-w-md px-5 py-20">
+        <p className="eyebrow">Espace hôte</p>
+        <h1 className="mt-2 font-display text-3xl">Accès réservé</h1>
+        <p className="mt-3 text-muted">Entrez le mot de passe pour gérer la maison.</p>
+        <form
+          className="mt-6 flex flex-col gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (value === HOST_PASSWORD) {
+              sessionStorage.setItem(SESSION_KEY, "1");
+              setOk(true);
+            } else {
+              setError(true);
+            }
+          }}
+        >
+          <input
+            type="password"
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              setError(false);
+            }}
+            placeholder="Mot de passe"
+            className="min-h-11 rounded-lg border border-line bg-white px-3"
+            autoFocus
+          />
+          {error ? <p className="text-sm text-red-700">Mot de passe incorrect.</p> : null}
+          <button type="submit" className="min-h-11 rounded-lg bg-olive text-white">
+            Entrer
+          </button>
+        </form>
+      </main>
+    </div>
+  );
+}
+
 export function HostPage() {
   const property = useStay((s) => s.property);
   const [tab, setTab] = useState<Tab>("demandes");
@@ -38,45 +92,47 @@ export function HostPage() {
   }, [property.name]);
 
   return (
-    <div className="min-h-screen bg-bg text-ink">
-      <SiteHeader property={property} solid />
-      <main className="mx-auto max-w-6xl px-5 py-8 md:py-12">
-        <p className="eyebrow">Espace hôte</p>
-        <h1 className="mt-2 font-display text-4xl leading-display text-balance md:text-5xl">
-          Gérez la maison sans vous perdre.
-        </h1>
-        <p className="mt-4 max-w-2xl leading-relaxed text-muted">
-          Textes, tarifs, photos, dates bloquées et demandes restent dans ce navigateur. Ajoutez votre e-mail
-          pour que les voyageurs puissent vous écrire leur demande. Les avis et la maison d’exemple se
-          remplacent ici — envoyez vos photos quand vous voulez, ou importez-les dans l’onglet Photos.
-        </p>
+    <PasswordGate>
+      <div className="min-h-screen bg-bg text-ink">
+        <SiteHeader property={property} solid />
+        <main className="mx-auto max-w-6xl px-5 py-8 md:py-12">
+          <p className="eyebrow">Espace hôte</p>
+          <h1 className="mt-2 font-display text-4xl leading-display text-balance md:text-5xl">
+            Gérez la maison sans vous perdre.
+          </h1>
+          <p className="mt-4 max-w-2xl leading-relaxed text-muted">
+            Textes, tarifs, photos, dates bloquées et demandes restent dans ce navigateur. Ajoutez votre e-mail
+            pour que les voyageurs puissent vous écrire leur demande. Les avis et la maison d’exemple se
+            remplacent ici — envoyez vos photos quand vous voulez, ou importez-les dans l’onglet Photos.
+          </p>
 
-        <div className="mt-8 flex gap-2 overflow-x-auto border-b border-line">
-          {TABS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              className={`min-h-11 shrink-0 border-b-2 px-3 text-sm ${
-                tab === item.id ? "border-olive text-ink" : "border-transparent text-muted"
-              }`}
-            >
-              {item.label}
-              {item.id === "demandes" && pending > 0 ? (
-                <span className="ml-2 tabular-nums text-olive">{pending}</span>
-              ) : null}
-            </button>
-          ))}
-        </div>
+          <div className="mt-8 flex gap-2 overflow-x-auto border-b border-line">
+            {TABS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setTab(item.id)}
+                className={`min-h-11 shrink-0 border-b-2 px-3 text-sm ${
+                  tab === item.id ? "border-olive text-ink" : "border-transparent text-muted"
+                }`}
+              >
+                {item.label}
+                {item.id === "demandes" && pending > 0 ? (
+                  <span className="ml-2 tabular-nums text-olive">{pending}</span>
+                ) : null}
+              </button>
+            ))}
+          </div>
 
-        <div className="py-8">
-          {tab === "demandes" ? <Requests /> : null}
-          {tab === "calendrier" ? <CalendarTab property={property} /> : null}
-          {tab === "maison" ? <HouseForm /> : null}
-          {tab === "photos" ? <PhotosForm /> : null}
-        </div>
-      </main>
-    </div>
+          <div className="py-8">
+            {tab === "demandes" ? <Requests /> : null}
+            {tab === "calendrier" ? <CalendarTab property={property} /> : null}
+            {tab === "maison" ? <HouseForm /> : null}
+            {tab === "photos" ? <PhotosForm /> : null}
+          </div>
+        </main>
+      </div>
+    </PasswordGate>
   );
 }
 
