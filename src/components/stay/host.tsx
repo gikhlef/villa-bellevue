@@ -368,6 +368,36 @@ function HouseForm() {
         toast("Enregistré sur cet appareil.");
       }}
     >
+      <div className="border border-line bg-surface p-5">
+        <p className="eyebrow">Faire connaissance</p>
+        <p className="mt-2 text-sm text-muted">Photo et texte qui apparaissent dans la section hôte du site.</p>
+        <label className="mt-4 block text-sm">
+          Votre présentation
+          <textarea
+            className="field mt-1 min-h-28"
+            value={property.hostBio || ""}
+            onChange={(e) => update({ hostBio: e.target.value })}
+          />
+        </label>
+        <label className="mt-4 block text-sm">
+          Votre photo
+          <input
+            type="file"
+            accept="image/*"
+            className="mt-1 block"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const data = await compress(file);
+              update({ hostPhoto: data });
+              toast("Photo enregistrée.");
+            }}
+          />
+        </label>
+        {property.hostPhoto ? (
+          <img src={property.hostPhoto} alt="" className="mt-3 h-24 w-24 object-cover" />
+        ) : null}
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Nom de la maison" value={property.name} onChange={(name) => update({ name })} />
         <Field label="Votre prénom" value={property.hostName} onChange={(hostName) => update({ hostName })} />
@@ -540,6 +570,7 @@ function HouseForm() {
 function PhotosForm() {
   const photos = useStay((s) => s.photos);
   const setPhoto = useStay((s) => s.setPhoto);
+  const [over, setOver] = useState<string | null>(null);
 
   async function onFile(id: string, file: File | undefined) {
     if (!file) return;
@@ -559,14 +590,26 @@ function PhotosForm() {
   return (
     <div>
       <p className="max-w-xl text-sm leading-relaxed text-muted">
-        Les photos de l’annonce. Une image remplacée reste dans ce navigateur. « Photo d’origine » revient à
-        celle de la fiche.
+        Glissez une image sur une photo pour la remplacer, ou cliquez sur Remplacer. Le changement reste dans ce navigateur.
       </p>
       <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {PHOTO_SLOTS.map((slot) => {
           const src = photos[slot.id] || slot.src;
           return (
-            <li key={slot.id} className="border border-line bg-surface">
+            <li
+              key={slot.id}
+              className={`border bg-surface ${over === slot.id ? "border-olive" : "border-line"}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setOver(slot.id);
+              }}
+              onDragLeave={() => setOver(null)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setOver(null);
+                void onFile(slot.id, e.dataTransfer.files[0]);
+              }}
+            >
               {src ? <img src={src} alt={slot.alt} className="aspect-photo w-full object-cover" /> : null}
               <div className="space-y-3 p-4">
                 <p className="text-sm">{slot.caption}</p>
