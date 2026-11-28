@@ -114,7 +114,7 @@ export function HomePage() {
               {[
                 { key: "spring", src: "/photos/34.jpg", alt: "Jardin" },
                 { key: "summer", src: "/photos/01.jpg", alt: "Piscine" },
-                { key: "autumn", src: "/photos/42.jpg", alt: "La vue" },
+                { key: "autumn", src: "/photos/automne.jpg", alt: "Vue d’automne depuis la terrasse" },
                 { key: "winter", src: "/photos/42.jpg", alt: "La vue, en hiver" },
               ].map((season) => (
                 <figure key={season.key} className="border-t border-line pt-4">
