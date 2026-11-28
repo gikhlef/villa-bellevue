@@ -2,11 +2,25 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { PHOTO_SLOTS } from "@/data/property";
 
-export function Gallery({ photos }: { photos: Record<string, string> }) {
-  const slots = PHOTO_SLOTS.flatMap((slot) => {
+export function Gallery({
+  photos,
+  extraPhotos = [],
+}: {
+  photos: Record<string, string>;
+  extraPhotos?: { id: string; src: string; room: string; caption: string }[];
+}) {
+  const base = PHOTO_SLOTS.flatMap((slot) => {
     const src = photos[slot.id] || slot.src;
     return src ? [{ ...slot, src }] : [];
   });
+  const extras = extraPhotos.map((p) => ({
+    id: p.id,
+    src: p.src,
+    alt: p.caption,
+    caption: p.caption,
+    room: p.room,
+  }));
+  const slots = [...extras, ...base];
   const [open, setOpen] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 

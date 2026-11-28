@@ -569,8 +569,28 @@ function HouseForm() {
 
 function PhotosForm() {
   const photos = useStay((s) => s.photos);
+  const extraPhotos = useStay((s) => s.extraPhotos);
   const setPhoto = useStay((s) => s.setPhoto);
+  const addExtraPhoto = useStay((s) => s.addExtraPhoto);
+  const removeExtraPhoto = useStay((s) => s.removeExtraPhoto);
   const [over, setOver] = useState<string | null>(null);
+  const [room, setRoom] = useState("Extérieur");
+
+  const ROOMS = ["Piscine", "Salon", "Cuisine", "Chambres", "Salles de bain", "Extérieur", "Autres"];
+
+  async function compressAndAdd(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast("Choisissez une image.");
+      return;
+    }
+    try {
+      const data = await compress(file);
+      addExtraPhoto({ src: data, room, caption: room });
+      toast("Photo ajoutée.");
+    } catch {
+      toast("Impossible de lire cette image.");
+    }
+  }
 
   async function onFile(id: string, file: File | undefined) {
     if (!file) return;
@@ -589,10 +609,63 @@ function PhotosForm() {
 
   return (
     <div>
-      <p className="max-w-xl text-sm leading-relaxed text-muted">
-        Glissez une image sur une photo pour la remplacer, ou cliquez sur Remplacer. Le changement reste dans ce navigateur.
+      <div
+        className="border-2 border-dashed border-line bg-surface p-6 text-center"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const file = e.dataTransfer.files[0];
+          if (file) void compressAndAdd(file);
+        }}
+      >
+        <p className="font-medium">Ajouter une photo</p>
+        <p className="mt-1 text-sm text-muted">Glissez une image ici, ou cliquez pour choisir.</p>
+        <label className="btn mt-4 inline-block">
+          Choisir une photo
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void compressAndAdd(file);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        <label className="mt-4 block text-sm">
+          Pièce
+          <select className="field mt-1" value={room} onChange={(e) => setRoom(e.target.value)}>
+            {ROOMS.map((r) => (
+              <option key={r}>{r}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      {extraPhotos.length > 0 ? (
+        <div className="mt-8">
+          <p className="text-sm font-medium">Photos ajoutées</p>
+          <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {extraPhotos.map((photo) => (
+              <li key={photo.id} className="border border-line bg-surface">
+                <img src={photo.src} alt={photo.caption} className="aspect-photo w-full object-cover" />
+                <div className="flex items-center justify-between p-3">
+                  <p className="text-sm">{photo.room}</p>
+                  <button type="button" className="btn-ghost" onClick={() => removeExtraPhoto(photo.id)}>
+                    Retirer
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <p className="mt-8 max-w-xl text-sm leading-relaxed text-muted">
+        Photos de l’annonce. Glissez une image sur une photo pour la remplacer.
       </p>
-      <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {PHOTO_SLOTS.map((slot) => {
           const src = photos[slot.id] || slot.src;
           return (
@@ -610,6 +683,34 @@ function PhotosForm() {
                 void onFile(slot.id, e.dataTransfer.files[0]);
               }}
             >
+              {src ? <img src={src} alt={slot.alt} className="aspect-photo w-full object-cover" /> : null}
+              <div className="space-y-3 p-4">
+                <p className="text-sm">{slot.caption}</p>
+                <label className="btn-ghost w-full">
+                  Remplacer
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => {
+                      void onFile(slot.id, e.target.files?.[0]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {photos[slot.id] ? (
+                  <button type="button" className="btn-ghost w-full" onClick={() => setPhoto(slot.id, null)}>
+                    Photo d’origine
+                  </button>
+                ) : null}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
               {src ? <img src={src} alt={slot.alt} className="aspect-photo w-full object-cover" /> : null}
               <div className="space-y-3 p-4">
                 <p className="text-sm">{slot.caption}</p>
